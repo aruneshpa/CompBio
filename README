@@ -1,0 +1,234 @@
+CSE 549 Project - Visualizing equivalence classes and mapping ambiguity graph
+
+Team Details:
+	Name	- 	Group No 17
+	Members	- 	Arun Rajan		: 110921170
+				Arunesh Pandey	: 110945824
+				FNU Gaurav		: 110920843
+				Hemant Pandey	: 110828730
+
+Main Project Folders/File Descriptions:
+	- ./
+		Contains entire codebase related to admin panel along with other resources
+
+			* Gruntfile.js : Build file containing code to serve the webpages, create dist, clean old dist, livereload dev environment changes etc.
+
+			* dist : Contains the entire panel code compiled, minified, uglified, cdnified and aggregated for deployment purposes (like on Amazon EC2 or EBS along with CDN compatibility for all resources such as images, fonts, scripts etc.)
+
+			* app/index.html : Main HTML page for our angular application containing global HTML code snippets
+
+			* app/scripts/app.js : Angular application init module
+
+			* app/scripts/config.js : generic global information store
+
+			* app/scripts/controllers : contain scripts for various controllers in our single page web application
+
+			* app/scripts/directives : generic global code snippets/functions/modules which are to be used like libraries in HTML/JS code of application
+
+			* app/scripts/libs : contain scripts for various basic graphing libraries
+
+			* app/styles/main.scss : entire CSS style design in this file except fonts
+
+			* app/styles/fonts.scss : fonts CSS style design in this file
+
+			* app/views/*.html : contain HTML code for various controllers in our single page web application
+
+	- ./server
+		Contains server code as well as database file "jshint.json"
+
+			* server.js : Node.js server code using "json-server" for RESTful routes and "lowdb" for database purposes along with all complex computations for generating clusters and other useful data
+
+			* db.json : Database file
+
+	- ./README
+		The file that you are reading right now
+
+Steps to Setup:
+	- ./extension
+		* Developer mode
+			# Go to chrome://extensions in chrome browser
+			# Select developer mode
+			# Click on "Load unpacked extension" and select the extension folder
+			# Enable the loaded extension and you are good to go
+
+		* Normal mode
+			# Install the extension using extension.crx
+
+	- ./panel
+		* Developer mode
+			# Run the sequence of commands in the given sequence in successive steps (assumption - node and npm are installed)
+			# `cd panel`
+			# `npm install -g grunt-cli bower`
+			# `gem install compass` (assumption - ruby is installed and functioning properly)
+			# `npm install`
+			# `bower install`
+			# `grunt serve` (this is to initiate the web application and serve it in developer mode automatically)
+			# open browser and go to "grv.com:9000"
+
+			# `grunt clean build` (this is to generate dist folder for normal mode)
+
+		*Normal mode
+			# `cd panel/dist` (assumption - dist is already generated)
+			# `python -m SimpleHTTPServer` (assumption - python is installed; Mac OS X and Linux)
+			# `python -m http.server` (assumption - python is installed; Windows)
+			# open browser and go to "grv.com:8000"
+
+	- ./server
+		* Developer/Normal mode
+			# `cd server`
+			# `npm install`
+			# `npm start` (to start the backend server)
+
+			# to truncate the entire DB manually, replace the contents of db.json with the Basic Database Design stated below
+
+	- ./grv.com.cer (assumption - Mac OS X; NOTE - this won't be required if we are deploying on a server instance with an actual domain name with an authentic SSL certificate and not self-signed like this one)
+		* Double click certificate to install it
+		* Select "System" from "Keychains" on top left corner
+		* Drag and drop this certificate there
+		* http://www.sqlservermart.com/HowTo/Windows_Import_Certificate.aspx (For windows)
+
+		* update your local DNS to point 0.0.0.0 to grv.com in "/private/etc/hosts" from root account/sudo (For Mac OS X)
+		* update your local DNS to point 127.0.0.1 to grv.com in "C:\Windows\System32\drivers\etc\hosts" from administrator account (For windows)
+
+Database/Data Design Choices:
+	- Basic Database Design
+		{
+			"users"			: [],
+			"sessions"		: [],
+			"cookies"		: [],
+			"history"		: [],
+			"blacklists"	: []
+		}
+
+	- User Object
+		{
+			/* unique user id (uniquely generated hex hash using current timestamp) */
+			"id": "f4386c88-e630-4325-a13e-b647f34684f3",
+
+			/* (list of target websites) */
+			"scriptTarget": [
+				{
+
+					/* target website id (sequential) */
+					"id": 1,
+					"value": "google.com"
+				}
+			],
+
+			/* whether to inject script or not */
+			"scriptFlag": true,
+
+			/* what script to inject */
+			"scriptValue": "alert(\"HELLO\")",
+
+			/* whether to show malicious file link or not */
+			"fileFlag": true,
+
+			/* what malicious file is to be downloaded */
+			"fileValue": "http://as.vanderbilt.edu/docs/YES%20for%20freshmen.pdf",
+
+			/* latitude for geolocation */
+			"lat": 40.906526799999995,
+
+			/* longitude for geolocation */
+			"long": -73.1091822
+		}
+
+	- Session Object
+		{
+			/* unique session id (uniquely generated hex hash using current timestamp) */
+			"id": "f6f2e7c2-12fc-492b-97d5-4b81e234c4ab",
+
+			/* parent user id in user table */
+			"userId": "f4386c88-e630-4325-a13e-b647f34684f3",
+
+			/* list of input events of a particular session */
+			"events": [
+				{
+
+					/* unique event id (generated from exact url of the page and the timestamp at point of embedding tracker in that input i.e. data-lockr-id field; to maintain multiple values of the same input field for same session multiple login/logout cycles and also to make sure that front end MVCs generated input fields are not missed due to repetitions) */
+					"id": "http://login.rivigo.com/sso/login?client_id=sso|_*_|1479769078418",
+
+					/* kind of event being tracked - for now only INPUT but can also be extended to SELECT, TEXTAREA and so on easily */
+					"tag": "INPUT",
+
+					/* tag specific type - in this case text input field */
+					"elemType": "text",
+
+					/* value of the event */
+					"value": "asdsadsda",
+
+					/* raw html data of the tracked event so as to make sure what is the exact purpose of this event */
+					"htmlData": "<input id=\"login-username\" type=\"text\" name=\"username\" placeholder=\"username or email\" required=\"required\" autofocus=\"autofocus\" data-lockr-id=\"1479769078418\">"
+				}
+			]
+		}
+
+	- Cookie Object
+		{
+			/* unique cookie id (hostname with timestamp at which captured) */
+			"id": "www.facebook.com|1479769173345",
+
+			/* parent session id in session table */
+			"sessionId": "c0317bc8-c957-4152-a393-845b79327486",
+
+			/* entire cookie jar stored as string */
+			"cookieStore": "_js_reg_fb_ref=https%3A%2F%2Fwww.facebook.com%2F"
+		}
+
+	- History Object
+		{
+			/* unique history id (timestamp till which the history is recorded) */
+			"id": "1479769078913",
+
+			/* parent user id in user table */
+			"userId": "f4386c88-e630-4325-a13e-b647f34684f3",
+
+			/* list of entries in history */
+			"historyData": [
+				{
+					/* unique id given by chrome itself for history objects */
+					"id": "74",
+
+					/* timestamp when last visited */
+					"lastVisitTime": 1479769078263.9429,
+
+					/* title of the page */
+					"title": "RIVIGO - SSO",
+
+					/* number of times user has navigated to this page by typing in the address */
+					"typedCount": 0,
+
+					/* exact url of the page navigated to by user */
+					"url": "http://login.rivigo.com/sso/login?client_id=sso",
+
+					/* number of times user visited this page */
+					"visitCount": 1
+				}
+			]
+		}
+
+	- Blacklist Object
+		{
+			/* unique sequential id to prevent conflicting entries */
+			"id": 1,
+
+			/* pattern of url to be blacklisted */
+			"pattern": "http://login.rivigo.com"
+		}
+Installation/Running Instrucions:
+	- git clone of the repo.
+		* https://aruneshpa@bitbucket.org/cse549_fall16/compbioproject.git
+	- Install npm and bower
+		* npm install && bower install
+	- Migrate to the server directory-
+		* cd compbioproject/server
+	- Install all the required modules in the node server.
+		* npm install
+	- Start the node server
+		* npm start
+	- Start the Server
+		* grunt serve
+
+	Once you run the grunt serve, it will open the webpage.
+
